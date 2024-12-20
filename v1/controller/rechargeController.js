@@ -1,6 +1,7 @@
 const { default: axios } = require("axios");
 const jwt = require("jsonwebtoken");
-
+const { validatepostmobileRecharge, validategetOperatorOrCircleData, validateGetBrowserPlan } = require("../validation/rechargeValidation");
+const RechargeBaseUrl = process.env.sprint_baseUrl
 // Create JWT
 const createJWT = () => {
   const SECRET_KEY = process.env.sprint_JWT_key; // Replace with your actual secret key
@@ -26,7 +27,7 @@ const getoperatorName = async (req, res) => {
     const token = createJWT();
     const options = {
       method: "POST",
-      url: "https://sit.paysprint.in/service-api/api/v1/service/recharge/recharge/getoperator",
+      url: `${RechargeBaseUrl}/recharge/recharge/getoperator`,
       headers: {
         accept: "application/json",
         Token: token,
@@ -58,16 +59,20 @@ const getoperatorName = async (req, res) => {
 const postmobileRecharge = async (req, res) => {
   try {
     const { operatorId, phoneNumber, amount } = req.body;
-console.log(operatorId, phoneNumber, amount , "operatorId, phoneNumber, amount")
-    if (!operatorId || !phoneNumber || !amount) {
-      return res.badRequest({
-        message: "Missing required fields: operatorId, phoneNumber, or amount.",
+
+    let validateRequest = validatepostmobileRecharge(req.body);
+
+    if (!validateRequest.isValid) {
+      return res.validationError({
+        message: `Invalid values in parameters, ${validateRequest.message}`,
       });
     }
+
+
     const token = createJWT();
     const options = {
       method: "POST",
-      url: "https://sit.paysprint.in/service-api/api/v1/service/recharge/recharge/dorecharge",
+      url: `${RechargeBaseUrl}/recharge/recharge/dorecharge`,
       headers: {
         accept: "application/json",
         Token: token,
@@ -105,18 +110,26 @@ console.log(operatorId, phoneNumber, amount , "operatorId, phoneNumber, amount")
 
 const getOperatorOrCircleData = async (req, res) => {
   try {
+
     const { phoneNumber } = req.body;
-console.log(phoneNumber , "phoneNumber")
+ 
     if (!phoneNumber) {
       return res.badRequest({
         message: "Missing required field: phoneNumber.",
+      });
+    }
+    let validateRequest = validategetOperatorOrCircleData(req.body);
+
+    if (!validateRequest.isValid) {
+      return res.validationError({
+        message: `Invalid values in parameters, ${validateRequest.message}`,
       });
     }
 
     const token = createJWT();
     const options = {
       method: "POST",
-      url: "https://sit.paysprint.in/service-api/api/v1/service/recharge/hlrapi/hlrcheck",
+      url: `${RechargeBaseUrl}/recharge/hlrapi/hlrcheck`,
       headers: {
         accept: "application/json",
         Token: token,
@@ -150,17 +163,19 @@ console.log(phoneNumber , "phoneNumber")
 const getBrowserPlan = async (req, res) => {
   try {
     const { circle, op } = req.body;
-console.log( circle, op  , "circle, op ")
-    if (!circle || !op) {
-      return res.badRequest({
-        message: "Missing required fields: circle or op.",
+
+    let validateRequest = validateGetBrowserPlan(req.body);
+
+    if (!validateRequest.isValid) {
+      return res.validationError({
+        message: `Invalid values in parameters, ${validateRequest.message}`,
       });
     }
 
     const token = createJWT();
     const options = {
       method: "POST",
-      url: "https://sit.paysprint.in/service-api/api/v1/service/recharge/hlrapi/browseplan",
+      url: `${RechargeBaseUrl}/recharge/hlrapi/browseplan`,
       headers: {
         accept: "application/json",
         Token: token,
